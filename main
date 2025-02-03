@@ -22,15 +22,16 @@ def main():
     args = parser.parse_args()
 
 
-    tables = pd.read_html(args.url)
-    
+    print("Fetching: %s" % args.url)
+    print("The running query: %s" % args.query)
+
+    tables   = pd.read_html(args.url)
     bigTable = pd.concat(tables, ignore_index=True)
     
     from sqlalchemy import create_engine
     engine = create_engine('sqlite://', echo=False)
     
     bigTable.to_sql(name='augmenters', con=engine)
-    
     
     from sqlalchemy import text
     with engine.connect() as conn:
@@ -44,8 +45,6 @@ def main():
             print("\tBonuses:")
             for Bonus in result[4].split(','):
                 print("\t\t%s" % Bonus)
-
-
 
 
 if __name__ == "__main__":
