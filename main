@@ -15,7 +15,7 @@ def main():
     parser.add_argument(
             '--query',
             type=str,
-            default="select * from augmenters where Bonuses like '%Speed%' and Bonuses like '%Rate of Fire%'",
+            default="select * from augmenters where Bonuses like '%Speed +%' and Bonuses like '%Rate of Fire +%'",
             help='Query to use on the resulting tables.'
             )
 
