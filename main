@@ -22,26 +22,35 @@ def main():
     args = parser.parse_args()
 
 
-    print("Fetching: %s" % args.url)
-    print("The running query: %s" % args.query)
+    filename = args.url.split('/')[-1]
 
-    tables   = pd.read_html(args.url)
-    bigTable = pd.concat(tables, ignore_index=True)
-    
+
+    # Either read a CSV file we prepared earlier or call read_html on the webpage.
+    try:
+        bigTable = pd.read_csv('%s.csv' % filename, sep='\t', index_col=0)
+    except Exception as e:
+        print("Fetching: %s" % args.url)
+        tables   = pd.read_html(args.url)
+        bigTable = pd.concat(tables, ignore_index=True)
+        bigTable.to_csv('%s.csv' % filename, sep='\t')
+
+
+
     from sqlalchemy import create_engine
     engine = create_engine('sqlite://', echo=False)
-    
+
     bigTable.to_sql(name='augmenters', con=engine)
-    
+
     from sqlalchemy import text
     with engine.connect() as conn:
+        print("Running query: %s" % args.query)
         results = conn.execute(text(args.query)).fetchall()
         from pprint import pprint
         for result in results:
             #pprint(result)
             print("Name: %s" % result[2])
             print("\ttech: %s" % result[1])
-    
+
             print("\tBonuses:")
             for Bonus in result[4].split(','):
                 print("\t\t%s" % Bonus)
