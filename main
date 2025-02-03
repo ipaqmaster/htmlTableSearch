@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+import argparse
+import pandas as pd
+
+def main():
+    parser = argparse.ArgumentParser(description="A script for organizing datasets.")
+
+    parser.add_argument(
+            '--url',
+            type=str,
+            default='https://www.starsonata.com/wiki/index.php/Augmenters',
+            help='A webpage with html tables to query'
+            )
+
+    parser.add_argument(
+            '--query',
+            type=str,
+            default="select * from augmenters where Bonuses like '%Speed%' and Bonuses like '%Rate of Fire%'",
+            help='Query to use on the resulting tables.'
+            )
+
+    args = parser.parse_args()
+
+
+    tables = pd.read_html(args.url)
+    
+    bigTable = pd.concat(tables, ignore_index=True)
+    
+    from sqlalchemy import create_engine
+    engine = create_engine('sqlite://', echo=False)
+    
+    bigTable.to_sql(name='augmenters', con=engine)
+    
+    
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        results = conn.execute(text(args.query)).fetchall()
+        from pprint import pprint
+        for result in results:
+            #pprint(result)
+            print("Name: %s" % result[2])
+            print("\ttech: %s" % result[1])
+    
+            print("\tBonuses:")
+            for Bonus in result[4].split(','):
+                print("\t\t%s" % Bonus)
+
+
+
+
+if __name__ == "__main__":
+    main()
